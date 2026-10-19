@@ -37,5 +37,28 @@ pipeline {
                 }
             }
         }
+                stage('Deploy jar to Nexus') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-credentials',
+                        usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    sh 'mvn deploy -DskipTests'
+                }
+            }
+        }
+        stage('Upload reports to Nexus') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-credentials',
+                        usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    sh '''
+                        cd target
+                        tar -czf jacoco-report.tar.gz site/jacoco
+                        tar -czf surefire-reports.tar.gz surefire-reports
+                        BASE=http://localhost:8081/repository/reports/country-service/${BUILD_NUMBER}
+                        curl --fail -u "$NEXUS_USER:$NEXUS_PASS" --upload-file jacoco-report.tar.gz $BASE/jacoco-report.tar.gz
+                        curl --fail -u "$NEXUS_USER:$NEXUS_PASS" --upload-file surefire-reports.tar.gz $BASE/surefire-reports.tar.gz
+                    '''
+                }
+            }
+        }
     }
 }
