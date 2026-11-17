@@ -47,14 +47,14 @@
         state: present
         namespace: jenkins
         src: deployment.yaml
-        kubeconfig: config
+        kubeconfig: /var/lib/jenkins/.kube/config
 
     - name: Apply Kubernetes Service
       kubernetes.core.k8s:
         state: present
         namespace: jenkins
         src: service.yaml
-        kubeconfig: config
+        kubeconfig: /var/lib/jenkins/.kube/config
 
     - name: Log out of Docker Hub
       community.docker.docker_login:
